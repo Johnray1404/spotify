@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Player</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #000;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    nav a {
+      margin: 0 15px;
+      color: white;
+      text-decoration: none;
+    }
+
+    main {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .music-container {
+      background-color: #282828;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+    }
+
+    .music-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .music-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1db954;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 0;
+      transition: background-color 0.3s;
+    }
+
+    .music-item:hover {
+      background-color: #17a34a;
+    }
+
+    .music-details {
+      flex-grow: 1;
+    }
+
+    .music-title {
+      margin: 0;
+      font-size: 1.2em;
+    }
+
+    audio {
+      margin-top: 5px;
+      width: 100%;
+    }
+
+    .add-to-playlist-form {
+      display: flex;
+      align-items: center;
+    }
+
+    select {
+      margin-right: 10px;
+      padding: 5px;
+      border-radius: 5px;
+      border: none;
+      background-color: #ffffff;
+      color: #000;
+    }
+
+    button {
+      background-color: #000;
+      border: none;
+      color: #1db954;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+    }
+
+    button:hover {
+      background-color: #333;
+    }
+
+    .delete-button {
+      background-color: red;
+      color: white;
+      margin-left: 10px;
+    }
+
+    .delete-button:hover {
+      background-color: darkred;
+    }
+
+    .button-icon {
+      margin-right: 5px;
+    }
+
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      margin-right: 10px;
+      background-color: #ffffff;
+      color: #000;
+    }
+
+    .search-button {
+      background-color: #1db954;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-button:hover {
+      background-color: #17a34a;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/logo.png" alt="Spotify Logo" class="logo">
+    <nav>
+        <a href="/"><i class="fas fa-home"></i>Home</a>
+        <a href="/library"><i class="fas fa-folder"></i>Library</a>
+        <a href="/upload"><i class="fas fa-upload"></i>Upload Music</a>
+    </nav>
+  </header>
+  
+  <main>
+    <h1>Music List</h1>
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Search by title..." id="searchInput">
+      <button class="search-button" onclick="searchMusic()">
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+    <div class="music-container">
+      <ul class="music-list" id="musicList">
+          <% if (musicList && musicList.length) { %>
+            <% musicList.forEach(music => { %>
+              <li class="music-item" data-id="<%= music.id %>">
+                <div class="music-details">
+                  <h2 class="music-title"><%= music.title %></h2>
+                  <audio controls>
+                    <source src="<%= music.file_path %>" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+                
+                <form action="/add-to-playlist" method="POST" class="add-to-playlist-form">
+                  <input type="hidden" name="musicId" value="<%= music.id %>">
+                  <select name="playlistId" required>
+                    <option value="" disabled selected>Select Playlist</option>
+                    <% playlists.forEach(playlist => { %>
+                      <option value="<%= playlist.id %>"><%= playlist.name %></option>
+                    <% }); %>
+                  </select>
+                  <button type="submit"><i class="fas fa-plus button-icon"></i>Add</button>
+                </form>
+                
+                <button class="delete-button" onclick="deleteMusic('<%= music.id %>', this)">
+                  <i class="fas fa-trash button-icon"></i>Delete
+                </button>
+              </li>
+            <% }); %>
+          <% } else { %>
+            <li>No music available.</li>
+          <% } %>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    function deleteMusic(musicId, btn) {
+      if (confirm('Are you sure you want to delete this music?')) {
+        fetch('/delete-music', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ musicId: musicId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message === 'Music deleted successfully') {
+            const musicItem = btn.closest('.music-item');
+            musicItem.remove(); 
+          } else {
+            alert('Error deleting music: ' + data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occurred while trying to delete music.');
+        });
+      }
+    }
+
+    function searchMusic() {
+      const input = document.getElementById('searchInput').value.toLowerCase();
+      const musicItems = document.querySelectorAll('.music-item');
+
+      musicItems.forEach(item => {
+        const title = item.querySelector('.music-title').textContent.toLowerCase();
+        if (title.includes(input)) {
+          item.style.display = ''; 
+        } else {
+          item.style.display = 'none'; 
+        }
+      });
+
+      if (!input) {
+        musicItems.forEach(item => {
+          item.style.display = ''; 
+        });
+      }
+    }
+  </script>
+  
+</body>
+</html>

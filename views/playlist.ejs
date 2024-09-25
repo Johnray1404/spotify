@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= playlist.name %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #000;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    nav a {
+      margin: 0 15px;
+      color: white;
+      text-decoration: none;
+    }
+    main {
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .music-container {
+      background-color: #282828;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      margin-bottom: 20px;
+    }
+    .music-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .music-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #1db954;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 0;
+      transition: background-color 0.3s;
+    }
+    .music-item:hover {
+      background-color: #17a34a;
+    }
+    .music-details {
+      flex-grow: 1;
+    }
+    .music-title {
+      margin: 0;
+      font-size: 1.2em;
+    }
+    audio {
+      margin-top: 5px;
+      width: 100%;
+    }
+    .delete-button {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .delete-button:hover {
+      background-color: darkred;
+    }
+    .button-icon {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/logo.png" alt="Spotify Logo" class="logo">
+    <nav>
+        <a href="/"><i class="fas fa-home"></i>Home</a>
+        <a href="/library"><i class="fas fa-folder"></i>Library</a>
+        <a href="/upload"><i class="fas fa-upload"></i>Upload Music</a>
+    </nav>
+  </header>
+  
+  <main>
+    <h1><%= playlist.name %></h1>
+    <div class="music-container">
+        <ul class="music-list">
+            <% musicList.forEach(music => { %>
+              <li class="music-item" data-id="<%= music.id %>">
+                <div class="music-details">
+                  <h2 class="music-title"><%= music.title %></h2>
+                  <audio controls>
+                    <source src="<%= music.file_path %>" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+                <form action="/delete-music-from-playlist" method="POST" class="delete-music-form">
+                  <input type="hidden" name="musicId" value="<%= music.id %>">
+                  <input type="hidden" name="playlistId" value="<%= playlist.id %>">
+                  <button type="submit" class="delete-button" onclick="return confirm('Are you sure you want to remove this music from the playlist?');">
+                    <i class="fas fa-trash button-icon"></i>Remove
+                  </button>
+                </form>
+              </li>
+            <% }); %>
+          </ul>          
+    </div>
+  </main>
+</body>
+</html>
